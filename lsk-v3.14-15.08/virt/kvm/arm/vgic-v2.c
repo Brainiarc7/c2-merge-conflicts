@@ -71,13 +71,9 @@ static void vgic_v2_sync_lr_elrsr(struct kvm_vcpu *vcpu, int lr,
 				  struct vgic_lr lr_desc)
 {
 	if (!(lr_desc.state & LR_STATE_MASK))
-<<<<<<< HEAD
 		__set_bit(lr, (unsigned long *)vcpu->arch.vgic_cpu.vgic_v2.vgic_elrsr);
-=======
-		set_bit(lr, (unsigned long *)vcpu->arch.vgic_cpu.vgic_v2.vgic_elrsr);
 	else
-		clear_bit(lr, (unsigned long *)vcpu->arch.vgic_cpu.vgic_v2.vgic_elrsr);
->>>>>>> 7febb2148d77fb50e26d1c718d6e6d5bc9715941
+		__clear_bit(lr, (unsigned long *)vcpu->arch.vgic_cpu.vgic_v2.vgic_elrsr);
 }
 
 static u64 vgic_v2_get_elrsr(const struct kvm_vcpu *vcpu)
