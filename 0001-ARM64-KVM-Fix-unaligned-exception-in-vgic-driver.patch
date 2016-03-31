@@ -1,0 +1,27 @@
+From 0a6c579bf8625f5ff590a847b0a87c56778ed925 Mon Sep 17 00:00:00 2001
+From: OtherCrashOverride <OtherCrashOverride@github.com>
+Date: Thu, 31 Mar 2016 06:21:16 -0400
+Subject: [PATCH] ARM64/KVM: Fix unaligned exception in vgic driver.
+
+Re: kvm oops vgic_v2_sync_lr_elrsr
+http://www.spinics.net/lists/kvm-arm/msg11336.html
+---
+ virt/kvm/arm/vgic-v2.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/virt/kvm/arm/vgic-v2.c b/virt/kvm/arm/vgic-v2.c
+index 01124ef..416baed 100644
+--- a/virt/kvm/arm/vgic-v2.c
++++ b/virt/kvm/arm/vgic-v2.c
+@@ -71,7 +71,7 @@ static void vgic_v2_sync_lr_elrsr(struct kvm_vcpu *vcpu, int lr,
+ 				  struct vgic_lr lr_desc)
+ {
+ 	if (!(lr_desc.state & LR_STATE_MASK))
+-		set_bit(lr, (unsigned long *)vcpu->arch.vgic_cpu.vgic_v2.vgic_elrsr);
++		__set_bit(lr, (unsigned long *)vcpu->arch.vgic_cpu.vgic_v2.vgic_elrsr);
+ }
+ 
+ static u64 vgic_v2_get_elrsr(const struct kvm_vcpu *vcpu)
+-- 
+2.7.4
+
