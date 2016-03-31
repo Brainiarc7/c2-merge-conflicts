@@ -79,6 +79,7 @@ unsigned int compat_elf_hwcap2 __read_mostly;
 #endif
 
 static const char *cpu_name;
+static const char *machine_name;
 phys_addr_t __fdt_pointer __initdata;
 
 /*
@@ -309,6 +310,8 @@ static void __init setup_machine_fdt(phys_addr_t dt_phys)
 		while (true)
 			cpu_relax();
 	}
+
+	machine_name = of_flat_dt_get_machine_name();
 }
 
 /*
@@ -472,17 +475,11 @@ static const char *compat_hwcap_str[] = {
 
 static int c_show(struct seq_file *m, void *v)
 {
-<<<<<<< HEAD
-	int i;
 #ifdef CONFIG_ARCH_MESON64_ODROIDC2
 	int rev;
 #endif
 
-	seq_printf(m, "Processor\t: %s rev %d (%s)\n",
-		   cpu_name, read_cpuid_id() & 15, ELF_PLATFORM);
-=======
 	int i, j;
->>>>>>> 450abdd606013e6290043e65f1abe510d11ac92e
 
 	for_each_online_cpu(i) {
 		struct cpuinfo_arm64 *cpuinfo = &per_cpu(cpu_data, i);
@@ -496,35 +493,6 @@ static int c_show(struct seq_file *m, void *v)
 #ifdef CONFIG_SMP
 		seq_printf(m, "processor\t: %d\n", i);
 #endif
-<<<<<<< HEAD
-	}
-
-	/* dump out the processor features */
-	seq_puts(m, "Features\t: ");
-
-	for (i = 0; hwcap_str[i]; i++)
-		if (elf_hwcap & (1 << i))
-			seq_printf(m, "%s ", hwcap_str[i]);
-#ifdef CONFIG_ARMV7_COMPAT_CPUINFO
-	if (is_compat_task()) {
-		/* Print out the non-optional ARMv8 HW capabilities */
-		seq_printf(m, "wp half thumb fastmult vfp edsp neon vfpv3 tlsi ");
-		seq_printf(m, "vfpv4 idiva idivt ");
-	}
-#endif
-
-	seq_printf(m, "\nCPU implementer\t: 0x%02x\n", read_cpuid_id() >> 24);
-	seq_printf(m, "CPU architecture: %s\n",
-#if IS_ENABLED(CONFIG_ARMV7_COMPAT_CPUINFO)
-			is_compat_task() ? "8" :
-#endif
-			"AArch64");
-	seq_printf(m, "CPU variant\t: 0x%x\n", (read_cpuid_id() >> 20) & 15);
-	seq_printf(m, "CPU part\t: 0x%03x\n", (read_cpuid_id() >> 4) & 0xfff);
-	seq_printf(m, "CPU revision\t: %d\n", read_cpuid_id() & 15);
-
-	seq_puts(m, "\n");
-=======
 
 		/*
 		 * Dump out the common processor features in a single line.
@@ -545,7 +513,6 @@ static int c_show(struct seq_file *m, void *v)
 					seq_printf(m, " %s", hwcap_str[j]);
 		}
 		seq_puts(m, "\n");
->>>>>>> 450abdd606013e6290043e65f1abe510d11ac92e
 
 		seq_printf(m, "CPU implementer\t: 0x%02x\n", (midr >> 24));
 		seq_printf(m, "CPU architecture: 8\n");
@@ -553,6 +520,8 @@ static int c_show(struct seq_file *m, void *v)
 		seq_printf(m, "CPU part\t: 0x%03x\n", ((midr >> 4) & 0xfff));
 		seq_printf(m, "CPU revision\t: %d\n\n", (midr & 0xf));
 	}
+
+	seq_printf(m, "Hardware\t: %s\n", machine_name);
 
 #ifdef CONFIG_ARCH_MESON64_ODROIDC2
 	rev = 0x0200 | get_meson_cpu_version(MESON_CPU_VERSION_LVL_MINOR);
