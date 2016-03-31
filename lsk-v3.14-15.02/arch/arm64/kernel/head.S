@@ -105,19 +105,17 @@ efi_head:
 	 */
 	add	x13, x18, #0x16
 	b	stext
-#else
-	b	stext				// branch to kernel start, magic
-	.long	0				// reserved
-<<<<<<< HEAD
-	.quad	_kernel_offset_le		// Image load offset from start of RAM, little-endian
-	.quad	_kernel_size_le			// Effective size of kernel image, little-endian
-	.quad	_kernel_flags_le		// Informative flags, little-endian
-=======
-#endif
 	.quad	TEXT_OFFSET			// Image load offset from start of RAM
 	.quad	0				// reserved
 	.quad	0				// reserved
->>>>>>> 21d7f14b70fed254222a24e124e8771e1437be4c
+#else
+        b       stext                           // branch to kernel start, magic
+        .long   0                               // reserved
+        .quad   _kernel_offset_le               // Image load offset from start of RAM, little-endian
+        .quad   _kernel_size_le                 // Effective size of kernel image, little-endian
+        .quad   _kernel_flags_le                // Informative flags, little-endian
+#endif
+
 	.quad	0				// reserved
 	.quad	0				// reserved
 	.quad	0				// reserved

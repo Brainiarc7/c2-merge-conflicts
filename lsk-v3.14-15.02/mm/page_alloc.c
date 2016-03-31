@@ -1504,14 +1504,9 @@ void free_hot_cold_page(struct page *page, bool cold)
 	 * excessively into the page allocator
 	 */
 	if (migratetype >= MIGRATE_PCPTYPES) {
-<<<<<<< HEAD
 		if (unlikely(is_migrate_isolate(migratetype))
 			|| unlikely(is_migrate_cma(migratetype))) {
-			free_one_page(zone, page, 0, migratetype);
-=======
-		if (unlikely(is_migrate_isolate(migratetype))) {
 			free_one_page(zone, page, pfn, 0, migratetype);
->>>>>>> 21d7f14b70fed254222a24e124e8771e1437be4c
 			goto out;
 		}
 		migratetype = MIGRATE_MOVABLE;
@@ -1657,13 +1652,8 @@ struct page *buffered_rmqueue(struct zone *preferred_zone,
 			gfp_t gfp_flags, int migratetype)
 {
 	unsigned long flags;
-<<<<<<< HEAD
 	struct page *page, *tmp_page = NULL;
-	int cold = !!(gfp_flags & __GFP_COLD);
-=======
-	struct page *page;
-	bool cold = ((gfp_flags & __GFP_COLD) != 0);
->>>>>>> 21d7f14b70fed254222a24e124e8771e1437be4c
+	int cold = ((gfp_flags & __GFP_COLD) != 0);
 
 again:
 	if (likely(order == 0)) {
@@ -1869,12 +1859,7 @@ static bool __zone_watermark_ok(struct zone *z, unsigned int order,
 		free_cma = zone_page_state(z, NR_FREE_CMA_PAGES);
 #endif
 
-<<<<<<< HEAD
-	free_pages -= free_cma;
-	if (free_pages <= min + lowmem_reserve)
-=======
 	if (free_pages - free_cma <= min + z->lowmem_reserve[classzone_idx])
->>>>>>> 21d7f14b70fed254222a24e124e8771e1437be4c
 		return false;
 	for (o = 0; o < order; o++) {
 		/* At the next order, this order's pages become unavailable */
@@ -2963,7 +2948,7 @@ retry_cpuset:
 	if (allocflags_to_migratetype(gfp_mask) == MIGRATE_MOVABLE)
 		alloc_flags |= ALLOC_CMA;
 #endif
-<<<<<<< HEAD
+
 retry:
 	if (global_page_state(NR_FREE_PAGES)  -
 		global_page_state(NR_FREE_CMA_PAGES)
@@ -2971,13 +2956,26 @@ retry:
 		if (!(gfp_mask & __GFP_NO_KSWAPD))
 			wake_all_kswapds(order, zonelist, high_zoneidx,
 							preferred_zone);
-=======
->>>>>>> 21d7f14b70fed254222a24e124e8771e1437be4c
 	/* First allocation attempt */
 	page = get_page_from_freelist(gfp_mask|__GFP_HARDWALL, nodemask, order,
 			zonelist, high_zoneidx, alloc_flags,
 			preferred_zone, classzone_idx, migratetype);
 	if (unlikely(!page)) {
+		/*
+		 * The first pass makes sure allocations are spread
+		 * fairly within the local node.  However, the local
+		 * node might have free pages left after the fairness
+		 * batches are exhausted, and remote zones haven't
+		 * even been considered yet.  Try once more without
+		 * fairness, and include remote zones now, before
+		 * entering the slowpath and waking kswapd: prefer
+		 * spilling to a remote zone over swapping locally.
+		 */
+		if (alloc_flags & ALLOC_FAIR) {
+			reset_alloc_batches(preferred_zone);
+			alloc_flags &= ~ALLOC_FAIR;
+			goto retry;
+		}
 		/*
 		 * Runtime PM, block IO and its error handling path
 		 * can deadlock because I/O on the device might not

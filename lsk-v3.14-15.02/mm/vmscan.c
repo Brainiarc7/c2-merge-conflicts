@@ -1691,15 +1691,11 @@ shrink_inactive_list(unsigned long nr_to_scan, struct lruvec *lruvec,
 
 	spin_unlock_irq(&zone->lru_lock);
 
-<<<<<<< HEAD
 	free_hot_cold_page_list(&page_list, 1);
 #ifdef CONFIG_CMA
 	wakeup_wq(has_cma);
 #endif
-=======
-	free_hot_cold_page_list(&page_list, true);
 
->>>>>>> 21d7f14b70fed254222a24e124e8771e1437be4c
 	/*
 	 * If reclaim is isolating dirty pages under writeback, it implies
 	 * that the long-lived page allocation rate is exceeding the page

@@ -2287,12 +2287,8 @@ void __clk_put(struct clk *clk)
 	if (!clk || WARN_ON_ONCE(IS_ERR(clk)))
 		return;
 
-<<<<<<< HEAD
-	clk_mutex_lock(clk);
-=======
 	clk_prepare_lock();
 	owner = clk->owner;
->>>>>>> 21d7f14b70fed254222a24e124e8771e1437be4c
 	kref_put(&clk->ref, __clk_release);
 	clk_mutex_unlock(clk);
 

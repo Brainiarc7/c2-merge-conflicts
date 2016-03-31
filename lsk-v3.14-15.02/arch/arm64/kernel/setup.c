@@ -41,11 +41,8 @@
 #include <linux/memblock.h>
 #include <linux/of_fdt.h>
 #include <linux/of_platform.h>
-<<<<<<< HEAD
 #include <linux/amlogic/cpu_version.h>
-=======
 #include <linux/efi.h>
->>>>>>> 21d7f14b70fed254222a24e124e8771e1437be4c
 
 #include <asm/fixmap.h>
 #include <asm/cputype.h>
