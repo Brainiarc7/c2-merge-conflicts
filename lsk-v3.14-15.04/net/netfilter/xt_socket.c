@@ -339,8 +339,8 @@ xt_socket_get_sock_v6(struct net *net, const u8 protocol,
 	return NULL;
 }
 
-struct sock*
-xt_socket_get6_sk(const struct sk_buff *skb, struct xt_action_param *par)
+static bool
+socket_mt6_v1_v2(const struct sk_buff *skb, struct xt_action_param *par)
 {
 	struct ipv6hdr ipv6_var, *iph = ipv6_hdr(skb);
 	struct udphdr _hdr, *hp = NULL;
@@ -348,6 +348,7 @@ xt_socket_get6_sk(const struct sk_buff *skb, struct xt_action_param *par)
 	const struct in6_addr *daddr = NULL, *saddr = NULL;
 	__be16 uninitialized_var(dport), uninitialized_var(sport);
 	int thoff = 0, uninitialized_var(tproto);
+	const struct xt_socket_mtinfo1 *info = (struct xt_socket_mtinfo1 *) par->matchinfo;
 
 	tproto = ipv6_find_hdr(skb, &thoff, -1, NULL, NULL);
 	if (tproto < 0) {
@@ -359,7 +360,7 @@ xt_socket_get6_sk(const struct sk_buff *skb, struct xt_action_param *par)
 		hp = skb_header_pointer(skb, thoff,
 					sizeof(_hdr), &_hdr);
 		if (hp == NULL)
-			return NULL;
+			return false;
 
 		saddr = &iph->saddr;
 		sport = hp->source;
@@ -368,41 +369,16 @@ xt_socket_get6_sk(const struct sk_buff *skb, struct xt_action_param *par)
 
 	} else if (tproto == IPPROTO_ICMPV6) {
 		if (extract_icmp6_fields(skb, thoff, &tproto, &saddr, &daddr,
-<<<<<<< HEAD
-					 &sport, &dport))
-			return NULL;
-=======
 					 &sport, &dport, &ipv6_var))
 			return false;
->>>>>>> ea4874481bcc45d87b25f9edda4763a2f669b0ff
 	} else {
-		return NULL;
+		return false;
 	}
 
 	if (!sk)
 		sk = xt_socket_get_sock_v6(dev_net(skb->dev), tproto,
 					   saddr, daddr, sport, dport,
 					   par->in);
-
-	pr_debug("proto %hhd %pI6:%hu -> %pI6:%hu "
-		 "(orig %pI6:%hu) sock %p\n",
-		 tproto, saddr, ntohs(sport),
-		 daddr, ntohs(dport),
-		 &iph->daddr, hp ? ntohs(hp->dest) : 0, sk);
-	return sk;
-}
-EXPORT_SYMBOL(xt_socket_get6_sk);
-
-static bool
-socket_mt6_v1_v2(const struct sk_buff *skb, struct xt_action_param *par)
-{
-	struct sock *sk;
-	const struct xt_socket_mtinfo1 *info;
-
-	info = (struct xt_socket_mtinfo1 *) par->matchinfo;
-
-	sk = xt_socket_get6_sk(skb, par);
-
 	if (sk) {
 		bool wildcard;
 		bool transparent = true;
@@ -428,6 +404,12 @@ socket_mt6_v1_v2(const struct sk_buff *skb, struct xt_action_param *par)
 		if (wildcard || !transparent)
 			sk = NULL;
 	}
+
+	pr_debug("proto %hhd %pI6:%hu -> %pI6:%hu "
+		 "(orig %pI6:%hu) sock %p\n",
+		 tproto, saddr, ntohs(sport),
+		 daddr, ntohs(dport),
+		 &iph->daddr, hp ? ntohs(hp->dest) : 0, sk);
 
 	return (sk != NULL);
 }
